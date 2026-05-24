@@ -3,7 +3,7 @@
 import uuid
 from fastapi import APIRouter, HTTPException
 from models.schemas import SessionCreate, SessionUpdate
-from services import db_service, rag_service
+from services import db_service
 
 router = APIRouter()
 
@@ -37,6 +37,8 @@ async def update_session(session_id: str, body: SessionUpdate):
 @router.delete("/{session_id}")
 async def delete_session(session_id: str):
     db_service.delete_session(session_id)
+    from services import rag_service
+
     rag_service.delete_session_index(session_id)
     return {"status": "deleted", "session_id": session_id}
 
@@ -61,5 +63,7 @@ async def get_documents(session_id: str):
 
 @router.get("/{session_id}/rag-stats")
 async def rag_stats(session_id: str):
+    from services import rag_service
+
     count = rag_service.get_indexed_count(session_id)
     return {"session_id": session_id, "indexed_chunks": count}

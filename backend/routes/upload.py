@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from models.schemas import UploadResponse
-from services import rag_service, db_service
+from services import db_service
 
 router = APIRouter()
 
@@ -21,6 +21,8 @@ MAX_BYTES = 50 * 1024 * 1024  # 50 MB
 
 @router.post("/", response_model=UploadResponse)
 async def upload(file: UploadFile = File(...), session_id: str = Form(...)):
+    from services import rag_service
+
     content_type = file.content_type or ""
     # Be lenient — also allow by extension
     ext = Path(file.filename).suffix.lower()

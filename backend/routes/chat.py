@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 import json
 
 from models.schemas import ChatRequest, ChatResponse
-from services import rag_service, ollama_service, db_service
+from services import ollama_service, db_service
 
 router = APIRouter()
 
@@ -22,6 +22,8 @@ async def chat(req: ChatRequest):
 
     context, sources = "", []
     if req.use_documents:
+        from services import rag_service
+
         settings = db_service.get_settings()
         top_k = int(settings.get("rag_top_k", 4))
         context, sources = rag_service.retrieve_context(req.message, req.session_id, top_k)
@@ -53,6 +55,8 @@ async def chat_stream(req: ChatRequest):
 
     context, sources = "", []
     if req.use_documents:
+        from services import rag_service
+
         context, sources = rag_service.retrieve_context(req.message, req.session_id)
 
     db_service.save_message(req.session_id, "user", req.message)
