@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8000/api";
+const BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api").replace(/\/$/, "");
 
 async function req(path, opts = {}) {
   const res = await fetch(`${BASE}${path}`, {
@@ -27,6 +27,7 @@ export const runPlugin      = (b)    => req("/plugins/run", { method: "POST", bo
 export const getSettings    = ()     => req("/settings/");
 export const saveSettings   = (b)    => req("/settings/", { method: "PUT", body: JSON.stringify(b) });
 export const exportSession  = (id, fmt) => window.open(`${BASE}/export/${id}/${fmt}`, "_blank");
+export const deleteDocument = (docId) => req(`/upload/${docId}`, { method: "DELETE" });
 
 export async function uploadDocument(file, session_id) {
   const fd = new FormData();
