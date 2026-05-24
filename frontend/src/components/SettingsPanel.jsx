@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SettingsIcon } from "./Icons";
 
 const MODELS    = ["llama3","mistral","phi3","gemma2","deepseek-r1"];
 const LANGUAGES = [{code:"en",label:"English"},{code:"hi",label:"हिन्दी"},{code:"ta",label:"தமிழ்"},{code:"te",label:"తెలుగు"},{code:"kn",label:"ಕನ್ನಡ"},{code:"fr",label:"Français"}];
@@ -18,7 +19,7 @@ export default function SettingsPanel({ settings, onSave, onClose }) {
   return (
     <div className="border-b border-gray-800 bg-gray-900 px-5 py-4 shrink-0">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-semibold text-white">⚙️ Settings</p>
+        <p className="text-sm font-semibold text-white inline-flex items-center gap-1.5"><SettingsIcon className="w-4 h-4" />Settings</p>
         <button onClick={onClose} className="text-gray-500 hover:text-gray-300 text-lg leading-none">×</button>
       </div>
 
