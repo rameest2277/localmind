@@ -1,51 +1,65 @@
 """LocalMind v2 Tests — run: pytest -v"""
-import pytest, json, sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+import json
+import tempfile
+from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock
 
-# Point to temp DB
-import tempfile, services.db_service as db
+import services.db_service as db
+from app import app
+
+
 _tmp = tempfile.mktemp(suffix=".db")
 db.DB_PATH = _tmp
 db.init_db()
 
-from app import app
 client = TestClient(app)
 
 
 # ─── Health ──────────────────────────────────────────────
 def test_root():
-    r = client.get("/"); assert r.status_code == 200
+    r = client.get("/")
+    assert r.status_code == 200
     assert r.json()["version"] == "2.0.0"
 
+
 def test_health():
-    r = client.get("/health"); assert r.json()["status"] == "healthy"
+    r = client.get("/health")
+    assert r.json()["status"] == "healthy"
 
 
 # ─── Sessions ────────────────────────────────────────────
 def test_create_session():
     r = client.post("/api/sessions/", json={"title": "Test Chat", "model": "llama3"})
-    assert r.status_code == 200; assert "id" in r.json()
+    assert r.status_code == 200
+    assert "id" in r.json()
+
 
 def test_list_sessions():
-    r = client.get("/api/sessions/"); assert r.status_code == 200
+    r = client.get("/api/sessions/")
+    assert r.status_code == 200
     assert isinstance(r.json(), list)
 
+
 def test_get_session_not_found():
-    r = client.get("/api/sessions/nonexistent"); assert r.status_code == 404
+    r = client.get("/api/sessions/nonexistent")
+    assert r.status_code == 404
+
 
 def test_update_session():
     r = client.post("/api/sessions/", json={"title": "Old Title"})
     sid = r.json()["id"]
-    r2  = client.patch(f"/api/sessions/{sid}", json={"title": "New Title"})
+    r2 = client.patch(f"/api/sessions/{sid}", json={"title": "New Title"})
     assert r2.json()["title"] == "New Title"
+
 
 def test_delete_session():
     r = client.post("/api/sessions/", json={"title": "To Delete"})
     sid = r.json()["id"]
-    r2 = client.delete(f"/api/sessions/{sid}"); assert r2.status_code == 200
+    r2 = client.delete(f"/api/sessions/{sid}")
+    assert r2.status_code == 200
+
 
 def test_get_messages_empty():
     r = client.post("/api/sessions/", json={"title": "Msg Test"})
@@ -77,7 +91,8 @@ def test_upload_too_large(monkeypatch):
 
 # ─── Plugins ─────────────────────────────────────────────
 def test_list_plugins():
-    r = client.get("/api/plugins/"); assert r.status_code == 200
+    r = client.get("/api/plugins/")
+    assert r.status_code == 200
     ids = [p["id"] for p in r.json()["plugins"]]
     assert "calculator" in ids
 
@@ -91,7 +106,7 @@ def test_calculator_advanced():
 
 def test_calculator_blocked():
     r = client.post("/api/plugins/run", json={"plugin":"calculator","input":"__import__('os')"})
-    assert "Unsafe" in r.json()["output"] or r.json()["success"] == False
+    assert "Unsafe" in r.json()["output"] or not r.json()["success"]
 
 def test_wordcount():
     r = client.post("/api/plugins/run", json={"plugin":"wordcount","input":"hello world foo bar"})
@@ -117,7 +132,8 @@ def test_unknown_plugin():
 
 # ─── Settings ────────────────────────────────────────────
 def test_get_settings():
-    r = client.get("/api/settings/"); assert r.status_code == 200
+    r = client.get("/api/settings/")
+    assert r.status_code == 200
     assert "default_model" in r.json()
 
 def test_save_settings():
@@ -131,12 +147,14 @@ def test_save_settings():
 # ─── Models (mocked) ─────────────────────────────────────
 @patch("routes.models.ollama_service.is_ollama_running", new_callable=AsyncMock, return_value=False)
 def test_models_ollama_down(mock):
-    r = client.get("/api/models/"); assert r.status_code == 503
+    r = client.get("/api/models/")
+    assert r.status_code == 503
 
 @patch("routes.models.ollama_service.is_ollama_running", new_callable=AsyncMock, return_value=True)
 @patch("routes.models.ollama_service.list_models", new_callable=AsyncMock, return_value=[{"name":"llama3","size":"4.7 GB","status":"available"}])
 def test_models_list(m1, m2):
-    r = client.get("/api/models/"); assert r.status_code == 200
+    r = client.get("/api/models/")
+    assert r.status_code == 200
     assert len(r.json()["models"]) == 1
 
 
@@ -150,16 +168,17 @@ def test_chat_ollama_down(mock):
 @patch("routes.chat.ollama_service.chat", new_callable=AsyncMock, return_value="Hello! I'm LocalMind.")
 @patch("routes.chat.rag_service.retrieve_context", return_value=("",  []))
 def test_chat_ok(m1, m2, m3):
-    r = client.post("/api/sessions/", json={"title":"t"})
+    r = client.post("/api/sessions/", json={"title": "t"})
     sid = r.json()["id"]
-    r2 = client.post("/api/chat/", json={"message":"hello","session_id":sid,"model":"llama3"})
+    r2 = client.post("/api/chat/", json={"message": "hello", "session_id": sid, "model": "llama3"})
     assert r2.status_code == 200
     assert "LocalMind" in r2.json()["reply"]
 
 
 # ─── Export ──────────────────────────────────────────────
 def test_export_not_found():
-    r = client.get("/api/export/nonexistent/markdown"); assert r.status_code == 404
+    r = client.get("/api/export/nonexistent/markdown")
+    assert r.status_code == 404
 
 def test_export_json():
     r = client.post("/api/sessions/", json={"title": "Export Test"})

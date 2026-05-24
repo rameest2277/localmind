@@ -25,7 +25,7 @@ async def upload(file: UploadFile = File(...), session_id: str = Form(...)):
     # Be lenient — also allow by extension
     ext = Path(file.filename).suffix.lower()
     if content_type not in ALLOWED and ext not in ALLOWED.values():
-        raise HTTPException(400, f"Unsupported file. Allowed: PDF, TXT, CSV, DOCX, MD, HTML")
+        raise HTTPException(400, "Unsupported file. Allowed: PDF, TXT, CSV, DOCX, MD, HTML")
 
     content = await file.read()
     if len(content) > MAX_BYTES:

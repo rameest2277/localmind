@@ -6,7 +6,6 @@ Handles: sessions, messages, documents, settings, plugins log
 import sqlite3
 import json
 import os
-from datetime import datetime
 from contextlib import contextmanager
 
 DB_PATH = os.getenv("DB_PATH", "./data/localmind.db")

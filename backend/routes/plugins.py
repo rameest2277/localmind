@@ -6,7 +6,6 @@ Built-in plugins: calculator, web-search (Searxng), code-runner, summarizer, tra
 import ast
 import math
 import re
-import httpx
 import subprocess
 import tempfile
 import os
@@ -170,14 +169,22 @@ def _translator(text: str) -> str:
     """Detect language and provide translation info (best-effort offline)."""
     # Simple heuristic language detection
     sample = text[:200]
-    if re.search(r'[\u0900-\u097F]', sample): lang = "Hindi (Devanagari)"
-    elif re.search(r'[\u0B80-\u0BFF]', sample): lang = "Tamil"
-    elif re.search(r'[\u0C00-\u0C7F]', sample): lang = "Telugu"
-    elif re.search(r'[\u0C80-\u0CFF]', sample): lang = "Kannada"
-    elif re.search(r'[\u0600-\u06FF]', sample): lang = "Arabic"
-    elif re.search(r'[\u4E00-\u9FFF]', sample): lang = "Chinese"
-    elif re.search(r'[\u3040-\u30FF]', sample): lang = "Japanese"
-    else: lang = "English / Latin script"
+    if re.search(r'[\u0900-\u097F]', sample):
+        lang = "Hindi (Devanagari)"
+    elif re.search(r'[\u0B80-\u0BFF]', sample):
+        lang = "Tamil"
+    elif re.search(r'[\u0C00-\u0C7F]', sample):
+        lang = "Telugu"
+    elif re.search(r'[\u0C80-\u0CFF]', sample):
+        lang = "Kannada"
+    elif re.search(r'[\u0600-\u06FF]', sample):
+        lang = "Arabic"
+    elif re.search(r'[\u4E00-\u9FFF]', sample):
+        lang = "Chinese"
+    elif re.search(r'[\u3040-\u30FF]', sample):
+        lang = "Japanese"
+    else:
+        lang = "English / Latin script"
 
     return (
         f"Detected Language: {lang}\n\n"

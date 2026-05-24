@@ -1,7 +1,6 @@
 """Export routes — /api/export — export chats as MD, JSON, TXT"""
 
 import json
-import os
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
