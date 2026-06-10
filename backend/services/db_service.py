@@ -261,6 +261,21 @@ def log_plugin(session_id: str, plugin: str, inp: str, out: str, success: bool =
             (session_id, plugin, inp, out, int(success)),
         )
 
+
+def get_messages_by_ids(message_ids: list):
+    """Fetch messages by list of message IDs (used for batch export)."""
+    if not message_ids:
+        return []
+    placeholders = ','.join('?' for _ in message_ids)
+    with get_db() as conn:
+        rows = conn.execute(f"""
+            SELECT id, role, content, sources, created_at as timestamp
+            FROM messages
+            WHERE id IN ({placeholders})
+        """, message_ids).fetchall()
+        return [dict(row) for row in rows]
+
+
 # ─── Prompt Template Registry ───────────────────────────────────────────────
 def create_prompt_template(prompt_title: str, prompt: str) -> dict:
     """Create a new prompt template."""
